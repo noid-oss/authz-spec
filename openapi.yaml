@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: authz check service
-  version: 2.0.0
+  version: 2.1.0
   description: |
     Live permission check backed by Keto. Apps never call keto-read directly.
 
@@ -21,8 +21,9 @@ paths:
         the Keto object as `<brand>/<app>/<type>/<id>`; `type` and `id` must match the grammars
         in MANIFEST.md or the service answers 400. The checked relation comes from the action suffix of
         `permission` (MANIFEST.md "Object relation map"): view, edit and delete only, anything else is
-        `allowed:false`, `denied` unless the manifest maps it. `object.type` must be a declared resource
-        type when the manifest declares resources.
+        `allowed:false`, `denied` unless the manifest maps it. `object.type` must equal the resource part
+        of `permission` (`invoice.view` on an `invoice` object, never on a `project` object; otherwise 400)
+        and must be a declared resource type when the manifest declares resources.
         A permission that is not in the app manifest returns 200 `allowed:false`, `unknown_permission`.
       security:
         - appCredential: []
