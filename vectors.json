@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "specVersion": "2.0.0",
+  "specVersion": "2.1.0",
   "config": {
     "brand": "idbi",
     "app": "billing",
@@ -4965,15 +4965,15 @@
       }
     },
     {
-      "name": "relation: suffix decides, not the resource part of the permission",
+      "name": "relation: object type must equal the resource part of the permission",
       "input": {
         "manifest": {},
         "permission": "other.view",
         "objectType": "invoice"
       },
       "expect": {
-        "allowed": true,
-        "relation": "view"
+        "allowed": false,
+        "reason": "invalid_object"
       }
     },
     {
@@ -5127,6 +5127,18 @@
       "expect": {
         "allowed": false,
         "reason": "unmapped_action"
+      }
+    },
+    {
+      "name": "relation: same resource part and type is accepted",
+      "input": {
+        "manifest": {},
+        "permission": "project.view",
+        "objectType": "project"
+      },
+      "expect": {
+        "allowed": true,
+        "relation": "view"
       }
     }
   ]

@@ -1,6 +1,6 @@
 # authz-spec
 
-Spec version 2.0.0. Language-neutral contract for authorization across brands. SDKs (any language) and the check service implement against this repo. Nothing here runs in production.
+Spec version 2.1.0. Language-neutral contract for authorization across brands. SDKs (any language) and the check service implement against this repo. Nothing here runs in production.
 
 ## Model
 

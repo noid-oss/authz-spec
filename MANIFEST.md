@@ -1,6 +1,6 @@
 # App manifest: `permissions.yaml`
 
-Spec version: **2.0.0** (also `specVersion` in `vectors.json` and `info.version` in `openapi.yaml`). 2.0.0 is breaking: new brand/app grammars, `app` is the OAuth `client_id`, linked-resource rules, object relation map.
+Spec version: **2.1.0** (also `specVersion` in `vectors.json` and `info.version` in `openapi.yaml`). 2.1.0 tightens the object relation map (the object type must equal the resource part of the permission). 2.0.0 was breaking: new brand/app grammars, `app` is the OAuth `client_id`, linked-resource rules, object relation map.
 
 Each app ships one manifest next to its code. It is the source for the Keto model the check service provisions and for the SDK's read/write split.
 
@@ -73,7 +73,7 @@ Checked in order: object, `#app`, `#parent`. Conformance: `linkVectors` in `vect
 
 ## Object relation map
 
-Normative for `POST /v1/check` when `object` is present. The check service maps the permission's **action suffix** (the part after the dot; the resource part is ignored) to the relation it checks on the object:
+Normative for `POST /v1/check` when `object` is present. The check service first requires `object.type` to equal the **resource part** of the permission (the part before the dot): `invoice.view` can be checked on an `invoice` object, never on a `project` object. A mismatch is rejected with reason `invalid_object` (the service answers 400 `invalid_request`) before anything is looked up. Then it maps the permission's **action suffix** (the part after the dot) to the relation it checks on the object:
 
 | Action suffix | Relation checked on the object |
 |---|---|

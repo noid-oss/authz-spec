@@ -1,7 +1,7 @@
 // Reference implementation of can() and the link / relation rules, used only to prove the
 // vectors are self-consistent. SDKs and the check service implement the same rules
 // (README.md, MANIFEST.md) in their own language.
-export const SPEC_VERSION = "2.0.0";
+export const SPEC_VERSION = "2.1.0";
 
 // Grammars (MANIFEST.md "Naming rules"). Keep in sync with the doc.
 const PERM = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/;
@@ -53,6 +53,7 @@ const DEFAULT_ACTIONS = { view: "view", edit: "edit", delete: "delete" };
 export function objectRelation({ manifest, permission, objectType }) {
   if (typeof permission !== "string" || permission.length > 64 || !PERM.test(permission)) return { allowed: false, reason: "invalid_request" };
   if (!validType(objectType)) return { allowed: false, reason: "invalid_object" };
+  if (permission.split(".")[0] !== objectType) return { allowed: false, reason: "invalid_object" };
   const declared = declaredTypes(manifest);
   if (declared && !declared.includes(objectType)) return { allowed: false, reason: "invalid_object" };
   const action = permission.split(".")[1];
