@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "can() conformance vectors",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "specVersion",
+    "config",
+    "vectors"
+  ],
+  "properties": {
+    "version": {
+      "const": 2
+    },
+    "specVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "config": {
+      "$ref": "#/$defs/config"
+    },
+    "vectors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/vector"
+      }
+    },
+    "linkVectors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/linkVector"
+      }
+    },
+    "relationVectors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationVector"
+      }
+    }
+  },
+  "$defs": {
+    "outcome": {
+      "enum": [
+        "allow",
+        "deny",
+        "error",
+        "timeout",
+        "not_called"
+      ]
+    },
+    "reason": {
+      "enum": [
+        "allowed_claim",
+        "allowed_live",
+        "invalid_issuer",
+        "invalid_tenant",
+        "invalid_subject",
+        "token_expired",
+        "invalid_config",
+        "invalid_request",
+        "invalid_object",
+        "permission_not_in_claim",
+        "denied",
+        "object_denied",
+        "check_error",
+        "check_timeout"
+      ]
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brand",
+        "app",
+        "issuer",
+        "tenant_id",
+        "now"
+      ],
+      "properties": {
+        "brand": {
+          "type": "string",
+          "minLength": 1
+        },
+        "app": {
+          "type": "string",
+          "minLength": 1
+        },
+        "issuer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "now": {
+          "type": "integer"
+        }
+      }
+    },
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {},
+        "id": {}
+      }
+    },
+    "vector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "manifest",
+        "claims",
+        "request",
+        "liveCheck",
+        "expect"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "config": {
+          "type": "object",
+          "description": "Partial override merged over the file-level config.",
+          "additionalProperties": false,
+          "properties": {
+            "brand": {
+              "type": "string"
+            },
+            "app": {
+              "type": "string"
+            },
+            "issuer": {
+              "type": "string"
+            },
+            "tenant_id": {
+              "type": "string"
+            },
+            "now": {
+              "type": "integer"
+            }
+          }
+        },
+        "manifest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reads"
+          ],
+          "properties": {
+            "reads": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "description": "Optional. Array of declared object types, or map type -> { actions: { <action>: <relation> } } (map form is optional/future). When present, object.type must be one of the declared types."
+            }
+          }
+        },
+        "claims": {
+          "type": "object",
+          "description": "Already-verified token claims. Any claim may be absent or of the wrong type on purpose.",
+          "additionalProperties": false,
+          "properties": {
+            "iss": {},
+            "sub": {},
+            "tenant_id": {},
+            "exp": {},
+            "permissions": {}
+          }
+        },
+        "request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "permission"
+          ],
+          "properties": {
+            "permission": {
+              "type": "string"
+            },
+            "object": {
+              "$ref": "#/$defs/object"
+            }
+          }
+        },
+        "liveCheck": {
+          "type": "object",
+          "description": "Stub outcome per live call. role = permission-level call (no object). object = object-level call. Default not_called.",
+          "additionalProperties": false,
+          "properties": {
+            "role": {
+              "$ref": "#/$defs/outcome"
+            },
+            "object": {
+              "$ref": "#/$defs/outcome"
+            }
+          }
+        },
+        "expect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowed",
+            "liveCalls",
+            "reason"
+          ],
+          "properties": {
+            "allowed": {
+              "type": "boolean"
+            },
+            "reason": {
+              "$ref": "#/$defs/reason"
+            },
+            "liveCalls": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "permission"
+                ],
+                "properties": {
+                  "permission": {
+                    "type": "string"
+                  },
+                  "object": {
+                    "$ref": "#/$defs/object"
+                  },
+                  "keto_object": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "linkVector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "input",
+        "expect"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "object",
+            "app"
+          ],
+          "properties": {
+            "object": {
+              "description": "Keto object of the Resource tuple: <brand>/<app>/<type>/<id>"
+            },
+            "app": {
+              "description": "Id of the App:<app> the tuple links to via #app"
+            },
+            "parent": {
+              "description": "Optional Keto object of the Resource linked via #parent"
+            }
+          }
+        },
+        "expect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "valid",
+            "reason"
+          ],
+          "properties": {
+            "valid": {
+              "type": "boolean"
+            },
+            "reason": {
+              "enum": [
+                "ok",
+                "invalid_object",
+                "app_mismatch",
+                "invalid_parent",
+                "parent_mismatch"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "relationVector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "input",
+        "expect"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "optional": {
+          "type": "boolean",
+          "description": "True for behaviour that is optional/future (manifest action mapping). Implementations without it must deny instead (unmapped_action)."
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "manifest",
+            "permission",
+            "objectType"
+          ],
+          "properties": {
+            "manifest": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "resources": {
+                  "description": "See vector.manifest.resources"
+                }
+              }
+            },
+            "permission": {
+              "type": "string"
+            },
+            "objectType": {}
+          }
+        },
+        "expect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowed"
+          ],
+          "properties": {
+            "allowed": {
+              "type": "boolean"
+            },
+            "relation": {
+              "type": "string"
+            },
+            "reason": {
+              "enum": [
+                "invalid_request",
+                "invalid_object",
+                "unmapped_action"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

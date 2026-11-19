@@ -1,0 +1,123 @@
+openapi: 3.1.0
+info:
+  title: authz check service
+  version: 2.0.0
+  description: |
+    Live permission check backed by Keto. Apps never call keto-read directly.
+
+    SDK rule (normative): treat the call as allowed only when the HTTP status is 200,
+    the body is a JSON object, and `allowed` is the boolean `true`. Everything else
+    (any other status, network error, timeout, invalid JSON, `allowed` missing,
+    non-boolean, or false) is a deny. Do not retry in v1. Recommended client timeout 2s;
+    a timeout is a deny.
+paths:
+  /v1/check:
+    post:
+      operationId: check
+      summary: Does `subject` hold `permission` (optionally on `object`) in `brand`/`app`?
+      description: |
+        Without `object`: is the permission granted to the subject through its roles in this app.
+        With `object`: is the permission granted on that specific object. The service derives
+        the Keto object as `<brand>/<app>/<type>/<id>`; `type` and `id` must match the grammars
+        in MANIFEST.md or the service answers 400. The checked relation comes from the action suffix of
+        `permission` (MANIFEST.md "Object relation map"): view, edit and delete only, anything else is
+        `allowed:false`, `denied` unless the manifest maps it. `object.type` must be a declared resource
+        type when the manifest declares resources.
+        A permission that is not in the app manifest returns 200 `allowed:false`, `unknown_permission`.
+      security:
+        - appCredential: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CheckRequest' }
+      responses:
+        '200':
+          description: Decision made. Only `allowed: true` is an allow.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CheckResponse' }
+        '400':
+          description: Malformed request or invalid name / object id. Deny.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Missing or invalid app credential. Deny.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403':
+          description: The credential is not allowed to ask about this brand/app. Deny.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429':
+          description: Rate limited. Deny, no retry.
+        '500':
+          description: Internal error. Deny.
+        '502':
+          description: Keto unreachable or returned garbage. Deny.
+        '503':
+          description: Unavailable. Deny.
+        '504':
+          description: Upstream timeout. Deny.
+components:
+  securitySchemes:
+    appCredential:
+      type: http
+      scheme: bearer
+      description: Credential of the calling app. Its brand and app must match the request body.
+  schemas:
+    CheckRequest:
+      type: object
+      additionalProperties: false
+      required: [brand, app, subject, permission]
+      properties:
+        brand:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9-]{0,62}$'
+        app:
+          type: string
+          pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
+          description: The app's OAuth client_id. Must not contain `..`.
+        subject:
+          type: string
+          minLength: 1
+          description: Kratos identity id (the token `sub`).
+        permission:
+          type: string
+          pattern: '^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$'
+          maxLength: 64
+        object:
+          type: object
+          additionalProperties: false
+          required: [type, id]
+          properties:
+            type:
+              type: string
+              pattern: '^[a-z][a-z0-9_]{0,31}$'
+              maxLength: 32
+            id:
+              type: string
+              pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$'
+              description: Must not contain `..`. Opaque to the service otherwise.
+    CheckResponse:
+      type: object
+      additionalProperties: false
+      required: [allowed, reason]
+      properties:
+        allowed:
+          type: boolean
+        reason:
+          type: string
+          enum: [allowed, denied, unknown_permission]
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          enum: [invalid_request, unauthorized, forbidden, rate_limited, internal, upstream_unavailable]
+        message:
+          type: string

@@ -1,0 +1,5133 @@
+{
+  "version": 2,
+  "specVersion": "2.0.0",
+  "config": {
+    "brand": "idbi",
+    "app": "billing",
+    "issuer": "https://auth.idbi.example/",
+    "tenant_id": "idbi",
+    "now": 1800000000
+  },
+  "vectors": [
+    {
+      "name": "read: allowed from claim, no live call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "claim missing entirely: deny without live call even if Keto would allow",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "permission_not_in_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "claim missing for a write: deny without live call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.print"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "permission_not_in_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "claim is empty array",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": []
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "permission_not_in_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "claim is a string, not an array",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": "invoice.view"
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "permission_not_in_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "claim is null",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": null
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "permission_not_in_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "permission not in claim",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.void"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "permission_not_in_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "claim wildcard does not match",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.*"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "permission_not_in_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "claim match is case sensitive",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "Invoice.View"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "permission_not_in_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "write: live allow",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.print"
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write: live deny despite claim",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "deny"
+      },
+      "request": {
+        "permission": "invoice.print"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "denied",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write: live error is deny",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "error"
+      },
+      "request": {
+        "permission": "invoice.print"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "check_error",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write: live timeout is deny",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "timeout"
+      },
+      "request": {
+        "permission": "invoice.print"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "check_timeout",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          }
+        ]
+      }
+    },
+    {
+      "name": "permission absent from manifest reads entirely is a write",
+      "manifest": {
+        "reads": []
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "deny"
+      },
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "denied",
+        "liveCalls": [
+          {
+            "permission": "invoice.view"
+          }
+        ]
+      }
+    },
+    {
+      "name": "empty reads: allow only via live",
+      "manifest": {
+        "reads": []
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view"
+          }
+        ]
+      }
+    },
+    {
+      "name": "permission in claim but not declared anywhere is still a write",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.shred"
+        ]
+      },
+      "liveCheck": {
+        "role": "deny"
+      },
+      "request": {
+        "permission": "invoice.shred"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "denied",
+        "liveCalls": [
+          {
+            "permission": "invoice.shred"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stale claim: read stays allowed from claim even though Keto would now deny",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "deny"
+      },
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "stale claim: write is NOT over-allowed, live deny wins",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "deny"
+      },
+      "request": {
+        "permission": "invoice.print"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "denied",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stale claim: read with object still gets live object check",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "deny"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "object_denied",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read + object: object allow (no permission-level call)",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read + object: object deny",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "deny"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "object_denied",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read + object: object error",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "error"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "check_error",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "read + object: object timeout",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "timeout"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "check_timeout",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write + object: both allow, permission first",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          },
+          {
+            "permission": "invoice.print",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write + object: permission deny stops before object call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "deny",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "denied",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write + object: permission error stops before object call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "error",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "check_error",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write + object: permission timeout stops before object call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "timeout",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "check_timeout",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write + object: permission allow, object deny",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "deny"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "object_denied",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          },
+          {
+            "permission": "invoice.print",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write + object: permission allow, object error",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "error"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "check_error",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          },
+          {
+            "permission": "invoice.print",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "write + object: permission allow, object timeout",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "timeout"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "check_timeout",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          },
+          {
+            "permission": "invoice.print",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "object without claim: deny without live call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "permission_not_in_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "wrong iss (other brand)",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.other.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_issuer",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "iss differs only by trailing slash",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_issuer",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "iss missing",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_issuer",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "wrong iss on a write makes no live call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.other.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.print"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_issuer",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "wrong tenant_id",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "acme",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_tenant",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "tenant_id missing",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_tenant",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "tenant_id differs by case",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "IDBI",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_tenant",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "wrong tenant_id on a write makes no live call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "acme",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.print"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_tenant",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "sub missing",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_subject",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "sub empty",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_subject",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "expired token (exp < now)",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1799999999,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "token_expired",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "expired token (exp == now)",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000000,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "token_expired",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "exp missing",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "token_expired",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "exp is a string",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": "1800000600",
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "token_expired",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "expired token on a write makes no live call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1799999999,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.print"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "token_expired",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "exp one second in the future is valid",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000001,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view"
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_claim",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "config override: other brand and issuer accept their own token",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.acme.example/",
+        "sub": "ana",
+        "tenant_id": "acme",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "config": {
+        "brand": "acme",
+        "issuer": "https://auth.acme.example/",
+        "tenant_id": "acme"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a1"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          },
+          {
+            "permission": "invoice.print",
+            "object": {
+              "type": "invoice",
+              "id": "a1"
+            },
+            "keto_object": "acme/billing/invoice/a1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "invalid permission name \"invoice\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "invalid permission name \"Invoice.view\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "Invoice.view",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "Invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "invalid permission name \"invoice.view.extra\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view.extra",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.view.extra"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "invalid permission name \"invoice:view\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice:view",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice:view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "invalid permission name \"invoice.\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice."
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "invalid permission name \".view\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          ".view",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": ".view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "invalid permission name \"invoice view\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice view",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "invalid permission name \"\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": ""
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "invalid permission name \"invoice.view\\n\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view\n",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "invoice.view\n"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "invalid permission name \"1invoice.view\"",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "1invoice.view",
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow"
+      },
+      "request": {
+        "permission": "1invoice.view"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "namespacing: normal id",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.print"
+          },
+          {
+            "permission": "invoice.print",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "namespacing: id with dots, underscore, dash",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "2024.001_a-b"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "2024.001_a-b"
+            },
+            "keto_object": "idbi/billing/invoice/2024.001_a-b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "namespacing: 128-char id is the maximum",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "keto_object": "idbi/billing/invoice/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ]
+      }
+    },
+    {
+      "name": "object id rejected: 129 chars",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: slash adds a segment",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "x/y"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: inject other brand/app via slashes",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "../other/crm/invoice/1"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: inject other brand/app absolute",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "other/crm/invoice/1"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: leading slash",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "/inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: trailing slash",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001/"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: parent traversal only",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": ".."
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: single dot",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "."
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: dot dot inside id",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a..b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: slash then dot dot",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a/../b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: backslash",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a\\b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: percent-encoded slash",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a%2Fb"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: percent-encoded dot dot",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "%2e%2e%2f"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: unicode fraction slash",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a⁄b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: unicode division slash",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a∕b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: fullwidth solidus",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a／b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: leading dot",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": ".hidden"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: leading dash",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "-x"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: newline",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a\nb"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: NUL",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a\u0000b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: space",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: colon (keto subject-set separator)",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a:b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: hash (keto relation separator)",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a#b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: at sign",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": "a@b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id rejected: empty id",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "role": "allow",
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.print",
+        "object": {
+          "type": "invoice",
+          "id": ""
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object type rejected: slash in type",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice/../..",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object type rejected: inject brand in type",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "other/crm/invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object type rejected: uppercase type",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "Invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object type rejected: empty type",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object type rejected: dot in type",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "a.b",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object type rejected: 33-char type",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object type rejected: leading digit",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "1x",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object type rejected: dot dot type",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "..",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "injected id on a read makes no live call",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "../x"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "object id that is not a string",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view",
+          "invoice.print"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": 7
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: UUID client_id is allowed",
+      "config": {
+        "app": "3f2b8c1e-9a4d-4e57-b6a0-1c2d3e4f5a6b",
+        "brand": "idbi"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/3f2b8c1e-9a4d-4e57-b6a0-1c2d3e4f5a6b/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 app: uppercase letters allowed",
+      "config": {
+        "app": "Billing"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/Billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 app: dot, underscore and hyphen allowed inside",
+      "config": {
+        "app": "billing.web_v2-a"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing.web_v2-a/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 app: digit-leading allowed",
+      "config": {
+        "app": "9billing"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/9billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 app: 128 chars allowed",
+      "config": {
+        "app": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 brand: 63 chars allowed",
+      "config": {
+        "brand": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 brand: digit-leading allowed",
+      "config": {
+        "brand": "9idbi"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "9idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 brand: inner hyphen allowed",
+      "config": {
+        "brand": "id-bi"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "id-bi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 brand: 64 chars denied",
+      "config": {
+        "brand": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 brand: uppercase denied",
+      "config": {
+        "brand": "Idbi"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 brand: leading hyphen denied",
+      "config": {
+        "brand": "-idbi"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 brand: leading dot denied",
+      "config": {
+        "brand": ".idbi"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 brand: dot denied",
+      "config": {
+        "brand": "id.bi"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 brand: underscore denied",
+      "config": {
+        "brand": "id_bi"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 brand: empty denied",
+      "config": {
+        "brand": ""
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 brand: '..' denied",
+      "config": {
+        "brand": ".."
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 brand: extra '/' denied",
+      "config": {
+        "brand": "idbi/billing"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 brand: '/../' injection denied",
+      "config": {
+        "brand": "idbi/../other"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: 129 chars denied",
+      "config": {
+        "app": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: leading hyphen denied",
+      "config": {
+        "app": "-billing"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: leading dot denied",
+      "config": {
+        "app": ".billing"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: empty denied",
+      "config": {
+        "app": ""
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: '..' denied",
+      "config": {
+        "app": ".."
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: embedded '..' denied",
+      "config": {
+        "app": "bill..ing"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: extra '/' denied",
+      "config": {
+        "app": "billing/invoice"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: '/../' injection denied",
+      "config": {
+        "app": "billing/../crm"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 app: percent-encoded separator denied",
+      "config": {
+        "app": "a%2Fb"
+      },
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_config",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 type: '..' denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "..",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 type: extra '/' denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice/x",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 type: '/../' injection denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "a/../b",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 type: uppercase denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "Invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 type: 33 chars denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 type: 32 chars allowed",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 id: leading hyphen denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "-inv"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 id: leading dot denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": ".inv"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 id: '..' denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": ".."
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 id: embedded '..' denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "a..b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 id: extra '/' denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "a/b"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 id: full four-segment injection denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "other/crm/invoice/1"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 id: '/../' injection denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "x/../y"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 id: UUID allowed",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "3f2b8c1e-9a4d-4e57-b6a0-1c2d3e4f5a6b"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "3f2b8c1e-9a4d-4e57-b6a0-1c2d3e4f5a6b"
+            },
+            "keto_object": "idbi/billing/invoice/3f2b8c1e-9a4d-4e57-b6a0-1c2d3e4f5a6b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 resources list: undeclared type denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ],
+        "resources": [
+          "invoice"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "receipt",
+          "id": "r-1"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 resources map: undeclared type denied",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ],
+        "resources": {
+          "invoice": {}
+        }
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {},
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "receipt",
+          "id": "r-1"
+        }
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object",
+        "liveCalls": []
+      }
+    },
+    {
+      "name": "v2 resources list: declared type allowed",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ],
+        "resources": [
+          "invoice"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "invoice",
+          "id": "inv-001"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "invoice",
+              "id": "inv-001"
+            },
+            "keto_object": "idbi/billing/invoice/inv-001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "v2 resources absent: any well-formed type allowed",
+      "manifest": {
+        "reads": [
+          "invoice.view"
+        ]
+      },
+      "claims": {
+        "iss": "https://auth.idbi.example/",
+        "sub": "ana",
+        "tenant_id": "idbi",
+        "exp": 1800000600,
+        "permissions": [
+          "invoice.view"
+        ]
+      },
+      "liveCheck": {
+        "object": "allow"
+      },
+      "request": {
+        "permission": "invoice.view",
+        "object": {
+          "type": "receipt",
+          "id": "r-1"
+        }
+      },
+      "expect": {
+        "allowed": true,
+        "reason": "allowed_live",
+        "liveCalls": [
+          {
+            "permission": "invoice.view",
+            "object": {
+              "type": "receipt",
+              "id": "r-1"
+            },
+            "keto_object": "idbi/billing/receipt/r-1"
+          }
+        ]
+      }
+    }
+  ],
+  "linkVectors": [
+    {
+      "name": "link: same brand and app, no parent",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "billing"
+      },
+      "expect": {
+        "valid": true,
+        "reason": "ok"
+      }
+    },
+    {
+      "name": "link: same brand and app with parent",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "billing",
+        "parent": "idbi/billing/folder/f-1"
+      },
+      "expect": {
+        "valid": true,
+        "reason": "ok"
+      }
+    },
+    {
+      "name": "link: UUID app, app link and parent agree",
+      "input": {
+        "object": "idbi/3f2b8c1e-9a4d-4e57-b6a0-1c2d3e4f5a6b/invoice/i-1",
+        "app": "3f2b8c1e-9a4d-4e57-b6a0-1c2d3e4f5a6b",
+        "parent": "idbi/3f2b8c1e-9a4d-4e57-b6a0-1c2d3e4f5a6b/folder/f-1"
+      },
+      "expect": {
+        "valid": true,
+        "reason": "ok"
+      }
+    },
+    {
+      "name": "link: #app points to another app",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "crm"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "app_mismatch"
+      }
+    },
+    {
+      "name": "link: #app differs only by case",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "Billing"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "app_mismatch"
+      }
+    },
+    {
+      "name": "link: parent in another app",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "billing",
+        "parent": "idbi/crm/folder/f-1"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "parent_mismatch"
+      }
+    },
+    {
+      "name": "link: parent in another brand",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "billing",
+        "parent": "acme/billing/folder/f-1"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "parent_mismatch"
+      }
+    },
+    {
+      "name": "link: parent in another brand and app",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "billing",
+        "parent": "acme/crm/folder/f-1"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "parent_mismatch"
+      }
+    },
+    {
+      "name": "link: parent is not a valid object (3 segments)",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "billing",
+        "parent": "idbi/billing/f-1"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "invalid_parent"
+      }
+    },
+    {
+      "name": "link: parent has extra segment",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "billing",
+        "parent": "idbi/billing/folder/f-1/x"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "invalid_parent"
+      }
+    },
+    {
+      "name": "link: parent contains '..'",
+      "input": {
+        "object": "idbi/billing/invoice/inv-001",
+        "app": "billing",
+        "parent": "idbi/billing/folder/.."
+      },
+      "expect": {
+        "valid": false,
+        "reason": "invalid_parent"
+      }
+    },
+    {
+      "name": "link: object is legacy 3-segment form",
+      "input": {
+        "object": "billing/invoice/inv-001",
+        "app": "billing"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "invalid_object"
+      }
+    },
+    {
+      "name": "link: object has 5 segments",
+      "input": {
+        "object": "idbi/billing/invoice/inv/001",
+        "app": "billing"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "invalid_object"
+      }
+    },
+    {
+      "name": "link: object brand 64 chars",
+      "input": {
+        "object": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/billing/invoice/i",
+        "app": "billing"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "invalid_object"
+      }
+    },
+    {
+      "name": "link: object app contains '..'",
+      "input": {
+        "object": "idbi/a..b/invoice/i",
+        "app": "a..b"
+      },
+      "expect": {
+        "valid": false,
+        "reason": "invalid_object"
+      }
+    }
+  ],
+  "relationVectors": [
+    {
+      "name": "relation: view maps to view",
+      "input": {
+        "manifest": {},
+        "permission": "invoice.view",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": true,
+        "relation": "view"
+      }
+    },
+    {
+      "name": "relation: edit maps to edit",
+      "input": {
+        "manifest": {},
+        "permission": "invoice.edit",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": true,
+        "relation": "edit"
+      }
+    },
+    {
+      "name": "relation: delete maps to delete",
+      "input": {
+        "manifest": {},
+        "permission": "invoice.delete",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": true,
+        "relation": "delete"
+      }
+    },
+    {
+      "name": "relation: print unmapped is denied",
+      "input": {
+        "manifest": {},
+        "permission": "invoice.print",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "unmapped_action"
+      }
+    },
+    {
+      "name": "relation: void unmapped is denied with list resources",
+      "input": {
+        "manifest": {
+          "resources": [
+            "invoice"
+          ]
+        },
+        "permission": "invoice.void",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "unmapped_action"
+      }
+    },
+    {
+      "name": "relation: suffix decides, not the resource part of the permission",
+      "input": {
+        "manifest": {},
+        "permission": "other.view",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": true,
+        "relation": "view"
+      }
+    },
+    {
+      "name": "relation: type not declared is rejected",
+      "input": {
+        "manifest": {
+          "resources": [
+            "invoice"
+          ]
+        },
+        "permission": "invoice.view",
+        "objectType": "receipt"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object"
+      }
+    },
+    {
+      "name": "relation: declared type is accepted",
+      "input": {
+        "manifest": {
+          "resources": [
+            "invoice"
+          ]
+        },
+        "permission": "invoice.view",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": true,
+        "relation": "view"
+      }
+    },
+    {
+      "name": "relation: bad permission name",
+      "input": {
+        "manifest": {},
+        "permission": "invoice",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_request"
+      }
+    },
+    {
+      "name": "relation: bad object type",
+      "input": {
+        "manifest": {},
+        "permission": "invoice.view",
+        "objectType": "Invoice"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "invalid_object"
+      }
+    },
+    {
+      "name": "relation: prototype key is not an action",
+      "input": {
+        "manifest": {},
+        "permission": "invoice.constructor",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "unmapped_action"
+      }
+    },
+    {
+      "name": "relation: manifest mapping print -> viewer (optional/future)",
+      "optional": true,
+      "input": {
+        "manifest": {
+          "resources": {
+            "invoice": {
+              "actions": {
+                "print": "viewer"
+              }
+            }
+          }
+        },
+        "permission": "invoice.print",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": true,
+        "relation": "viewer"
+      }
+    },
+    {
+      "name": "relation: manifest mapping does not cover void (optional/future)",
+      "optional": true,
+      "input": {
+        "manifest": {
+          "resources": {
+            "invoice": {
+              "actions": {
+                "print": "viewer"
+              }
+            }
+          }
+        },
+        "permission": "invoice.void",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "unmapped_action"
+      }
+    },
+    {
+      "name": "relation: manifest mapping cannot remap view (optional/future)",
+      "optional": true,
+      "input": {
+        "manifest": {
+          "resources": {
+            "invoice": {
+              "actions": {
+                "view": "viewer"
+              }
+            }
+          }
+        },
+        "permission": "invoice.view",
+        "objectType": "invoice"
+      },
+      "expect": {
+        "allowed": true,
+        "relation": "view"
+      }
+    },
+    {
+      "name": "relation: mapping of another type does not apply (optional/future)",
+      "optional": true,
+      "input": {
+        "manifest": {
+          "resources": {
+            "invoice": {
+              "actions": {
+                "print": "viewer"
+              }
+            },
+            "receipt": {}
+          }
+        },
+        "permission": "receipt.print",
+        "objectType": "receipt"
+      },
+      "expect": {
+        "allowed": false,
+        "reason": "unmapped_action"
+      }
+    }
+  ]
+}
