@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: authz check service
-  version: 2.1.0
+  version: 2.2.0
   description: |
     Live permission check backed by Keto. Apps never call keto-read directly.
 
@@ -25,6 +25,12 @@ paths:
         of `permission` (`invoice.view` on an `invoice` object, never on a `project` object; otherwise 400)
         and must be a declared resource type when the manifest declares resources.
         A permission that is not in the app manifest returns 200 `allowed:false`, `unknown_permission`.
+
+        Binding (MANIFEST.md "Binding"): before any Permission, Role or Resource lookup the service
+        requires exactly one `App:<client_id>#tenant@Tenant:<brand>` tuple for the caller's brand. If the
+        app has no such single tuple (none, several, another tenant, or a subject that is not a plain
+        `Tenant:<slug>`) it answers 200 `allowed:false`, `app_not_bound`, and nothing else is read. When
+        Keto cannot be read to decide the binding, the 502/504 answers below still apply (never a 200).
       security:
         - appCredential: []
       requestBody:
@@ -34,7 +40,7 @@ paths:
             schema: { $ref: '#/components/schemas/CheckRequest' }
       responses:
         '200':
-          description: Decision made. Only `allowed: true` is an allow.
+          description: Decision made. Only `allowed: true` is an allow. `reason` `app_not_bound` means the app is not linked to the caller's brand in Keto (always `allowed: false`).
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CheckResponse' }
@@ -58,11 +64,11 @@ paths:
         '500':
           description: Internal error. Deny.
         '502':
-          description: Keto unreachable or returned garbage. Deny.
+          description: Keto unreachable or returned garbage, including when reading the app binding. Deny.
         '503':
           description: Unavailable. Deny.
         '504':
-          description: Upstream timeout. Deny.
+          description: Upstream timeout, including when reading the app binding. Deny.
 components:
   securitySchemes:
     appCredential:
@@ -112,7 +118,7 @@ components:
           type: boolean
         reason:
           type: string
-          enum: [allowed, denied, unknown_permission]
+          enum: [allowed, denied, unknown_permission, app_not_bound]
     Error:
       type: object
       required: [error]

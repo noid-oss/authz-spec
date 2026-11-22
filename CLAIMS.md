@@ -17,6 +17,8 @@ Access tokens are issued by the brand's Hydra. Source of truth for the existing 
 
 `roles` and `permissions` are not emitted by noid-webapp yet; this spec defines them.
 
+For an app that is not bound to the token's brand (MANIFEST.md "Binding"), the token hook omits both `roles` and `permissions`: they are **absent**, not empty arrays. Other claims (`tenant_id`, ...) are unaffected. Absent already means deny for verifiers, so an unbound app never gets a permission from the claim.
+
 ## Where custom claims live
 
 Hydra puts consent-time session claims under `ext` in introspection responses and merges them to the top level of JWT access tokens. Verifiers read standard claims (`iss`, `sub`, `exp`, `aud`, `scope`) only from the top level. Custom claims (`tenant_id`, `roles`, `permissions`, `acr`, `amr`, `auth_time`, `email`) are read from the top level, falling back to `ext`. A custom claim must never override a standard one.

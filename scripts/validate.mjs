@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
-import { can, checkLinks, objectRelation, SPEC_VERSION } from "./reference.mjs";
+import { appBound, can, checkLinks, objectRelation, SPEC_VERSION } from "./reference.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const schema = JSON.parse(readFileSync(join(root, "vectors.schema.json"), "utf8"));
@@ -40,7 +40,7 @@ function validate(s, v, path, errs) {
 const errs = [];
 validate(schema, data, "$", errs);
 const names = new Set();
-for (const v of [...(data.vectors ?? []), ...(data.linkVectors ?? []), ...(data.relationVectors ?? [])]) {
+for (const v of [...(data.vectors ?? []), ...(data.linkVectors ?? []), ...(data.relationVectors ?? []), ...(data.bindingVectors ?? [])]) {
   if (names.has(v.name)) errs.push(`duplicate vector name: ${v.name}`);
   names.add(v.name);
 }
@@ -77,9 +77,16 @@ for (const v of data.relationVectors ?? []) {
     console.error(`FAIL relation ${v.name}\n  want ${JSON.stringify(v.expect)}\n  got  ${JSON.stringify(got)}`);
   }
 }
-const total = data.vectors.length + (data.linkVectors?.length ?? 0) + (data.relationVectors?.length ?? 0);
+for (const v of data.bindingVectors ?? []) {
+  const got = appBound(v.input);
+  if (!isDeepStrictEqual(got, v.expect)) {
+    failed++;
+    console.error(`FAIL binding ${v.name}\n  want ${JSON.stringify(v.expect)}\n  got  ${JSON.stringify(got)}`);
+  }
+}
+const total = data.vectors.length + (data.linkVectors?.length ?? 0) + (data.relationVectors?.length ?? 0) + (data.bindingVectors?.length ?? 0);
 if (failed) {
   console.error(`replay: ${failed} of ${total} failed`);
   process.exit(1);
 }
-console.log(`replay: ok (${total}/${total}: ${data.vectors.length} can, ${data.linkVectors?.length ?? 0} link, ${data.relationVectors?.length ?? 0} relation)`);
+console.log(`replay: ok (${total}/${total}: ${data.vectors.length} can, ${data.linkVectors?.length ?? 0} link, ${data.relationVectors?.length ?? 0} relation, ${data.bindingVectors?.length ?? 0} binding)`);

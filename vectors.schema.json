@@ -38,6 +38,12 @@
       "items": {
         "$ref": "#/$defs/relationVector"
       }
+    },
+    "bindingVectors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/bindingVector"
+      }
     }
   },
   "$defs": {
@@ -364,6 +370,54 @@
                 "invalid_object",
                 "unmapped_action"
               ]
+            }
+          }
+        }
+      }
+    },
+    "bindingVector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "input",
+        "expect"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "brand",
+            "subjects"
+          ],
+          "properties": {
+            "brand": {
+              "type": "string",
+              "description": "The caller's brand (client metadata.tenant)."
+            },
+            "subjects": {
+              "type": "array",
+              "description": "Raw subject ids of every App:<client_id>#tenant tuple of the app in Keto.",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "expect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bound"
+          ],
+          "properties": {
+            "bound": {
+              "type": "boolean"
             }
           }
         }
