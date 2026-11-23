@@ -1,7 +1,7 @@
 // Reference implementation of can() and the link / relation rules, used only to prove the
 // vectors are self-consistent. SDKs and the check service implement the same rules
 // (README.md, MANIFEST.md) in their own language.
-export const SPEC_VERSION = "2.1.0";
+export const SPEC_VERSION = "2.2.0";
 
 // Grammars (MANIFEST.md "Naming rules"). Keep in sync with the doc.
 const PERM = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/;
@@ -63,6 +63,17 @@ export function objectRelation({ manifest, permission, objectType }) {
     return { allowed: true, relation: mapped[action] };
   }
   return { allowed: false, reason: "unmapped_action" };
+}
+
+// Binding rule (MANIFEST.md "Binding"): `subjects` are the raw subject ids of every
+// App:<client_id>#tenant tuple of the app in Keto. Bound only for exactly one subject, a plain
+// Tenant:<slug>, whose slug equals the caller's brand.
+export function appBound({ brand, subjects }) {
+  if (!validBrand(brand) || !Array.isArray(subjects) || subjects.length !== 1) return { bound: false };
+  const s = subjects[0];
+  if (typeof s !== "string" || !s.startsWith("Tenant:")) return { bound: false };
+  const slug = s.slice("Tenant:".length);
+  return { bound: validBrand(slug) && slug === brand };
 }
 
 export function can({ config, manifest, claims, request, live }) {

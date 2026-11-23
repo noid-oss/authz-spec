@@ -1,6 +1,6 @@
 # App manifest: `permissions.yaml`
 
-Spec version: **2.1.0** (also `specVersion` in `vectors.json` and `info.version` in `openapi.yaml`). 2.1.0 tightens the object relation map (the object type must equal the resource part of the permission). 2.0.0 was breaking: new brand/app grammars, `app` is the OAuth `client_id`, linked-resource rules, object relation map.
+Spec version: **2.2.0** (also `specVersion` in `vectors.json` and `info.version` in `openapi.yaml`). 2.2.0 adds the app binding rule (`app_not_bound`, "Binding"). 2.1.0 tightens the object relation map (the object type must equal the resource part of the permission). 2.0.0 was breaking: new brand/app grammars, `app` is the OAuth `client_id`, linked-resource rules, object relation map.
 
 Each app ships one manifest next to its code. It is the source for the Keto model the check service provisions and for the SDK's read/write split.
 
@@ -85,3 +85,15 @@ Normative for `POST /v1/check` when `object` is present. The check service first
 - `object.type` must equal a declared resource type when the manifest declares `resources`.
 - **Optional/future** mapping: `resources: { invoice: { actions: { print: viewer } } }` maps action `print` on type `invoice` to relation `viewer` (relation names `^[a-z][a-z0-9_]{0,31}$`). A mapping may add actions but never remap `view`, `edit` or `delete`; those keep the defaults. Implementations that do not support the map treat those actions as unmapped (denied). Vectors for it carry `optional: true`.
 - Conformance: `relationVectors` in `vectors.json`. Reasons there: `invalid_request` (bad permission), `invalid_object` (bad or undeclared type), `unmapped_action`.
+
+## Binding
+
+The owner of an app is the Keto tuple `App:<client_id>#tenant@Tenant:<brand>`. Two brands can run their own Hydra and issue the same `client_id`, while `Role:`, `Permission:` and `App:` objects in Keto are keyed by the bare `client_id`, so without this rule one brand could use another brand's permissions.
+
+- The tuple must exist **exactly once** for the app and its subject must be exactly `Tenant:<brand>` for the caller's brand. It is the binding authority.
+- Not bound: no tuple, several tuples (even if one is the caller's brand, or the same brand twice), a tuple for another tenant, or a subject that is not a plain `Tenant:<slug>` (another namespace, a subject set such as `Tenant:<slug>#member`).
+- Services check the binding **before** any Permission, Role or Resource tuple is read. `POST /v1/check` answers 200 `allowed:false`, `app_not_bound` (see `openapi.yaml`).
+- The token hook omits the `roles` and `permissions` claims for an unbound app (see `CLAIMS.md`).
+- If Keto cannot be read, that is a failure (check service 502/504, hook error), never an `app_not_bound` answer and never an allow.
+- A bound answer may be cached for a few seconds, so a revoked binding can keep working until that TTL ends. Each service documents its own TTL (oauth-claims: `KETO_BINDING_CACHE_TTL`, default 3s). Unbound answers and errors should not be cached, so a new link is seen at once.
+- Conformance: `bindingVectors` in `vectors.json` (input: the caller's `brand` and the raw `subjects` of the app's `#tenant` tuples; expect: `bound`).

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "specVersion": "2.1.0",
+  "specVersion": "2.2.0",
   "config": {
     "brand": "idbi",
     "app": "billing",
@@ -5139,6 +5139,79 @@
       "expect": {
         "allowed": true,
         "relation": "view"
+      }
+    }
+  ],
+  "bindingVectors": [
+    {
+      "name": "binding: one Tenant tuple for the caller's brand is bound, allowed to continue",
+      "input": {
+        "brand": "idbi",
+        "subjects": [
+          "Tenant:idbi"
+        ]
+      },
+      "expect": {
+        "bound": true
+      }
+    },
+    {
+      "name": "binding: no tuple is not bound",
+      "input": {
+        "brand": "idbi",
+        "subjects": []
+      },
+      "expect": {
+        "bound": false
+      }
+    },
+    {
+      "name": "binding: tuple for another tenant is not bound",
+      "input": {
+        "brand": "idbi",
+        "subjects": [
+          "Tenant:acme"
+        ]
+      },
+      "expect": {
+        "bound": false
+      }
+    },
+    {
+      "name": "binding: two tenants is not bound even if one is the brand",
+      "input": {
+        "brand": "idbi",
+        "subjects": [
+          "Tenant:idbi",
+          "Tenant:acme"
+        ]
+      },
+      "expect": {
+        "bound": false
+      }
+    },
+    {
+      "name": "binding: subject that is not a plain Tenant is not bound",
+      "input": {
+        "brand": "idbi",
+        "subjects": [
+          "Tenant:idbi#member"
+        ]
+      },
+      "expect": {
+        "bound": false
+      }
+    },
+    {
+      "name": "binding: subject in another namespace is not bound",
+      "input": {
+        "brand": "idbi",
+        "subjects": [
+          "User:idbi"
+        ]
+      },
+      "expect": {
+        "bound": false
       }
     }
   ]
